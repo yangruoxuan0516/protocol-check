@@ -1,0 +1,33 @@
+[project]
+name = "protocol-check"
+version = "0.1.0"
+requires-python = ">=3.9"
+
+dependencies = [
+    "openai>=1.0",
+    "tomli>=2.0; python_version < '3.11'",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7",
+]
+
+[tool.setuptools]
+py-modules = ["config"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+    "checks*",
+    "domain*",
+    "engine*",
+    "parsing*",
+    "services*",
+]
+exclude = [
+    "tests*",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

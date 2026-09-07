@@ -1,0 +1,10 @@
+[qwen]
+model = "qwen3.5-35b"
+base_url = ""
+api_key = ""
+
+[qwen.generation]
+temperature = 0.0
+
+[runner]
+output_dir = "outputs"

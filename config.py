@@ -1,0 +1,62 @@
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Optional
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
+
+
+BASE_DIR = Path(__file__).resolve().parent
+
+
+@dataclass
+class QwenConfig:
+    model: str
+    base_url: str
+    api_key: str
+    temperature: float = 0.0
+
+
+@dataclass
+class RunnerConfig:
+    output_dir: str = "outputs"
+
+
+@dataclass
+class AppConfig:
+    qwen: QwenConfig
+    runner: RunnerConfig
+
+
+def load_config(path: Optional[str] = None) -> AppConfig:
+    config_path = (
+        Path(path)
+        if path is not None
+        else BASE_DIR / "config.toml"
+    )
+
+    if not config_path.exists():
+        raise RuntimeError(
+            f"Config file not found: {config_path}\n"
+            "Create config.toml based on config.example.toml."
+        )
+
+    with config_path.open("rb") as f:
+        data = tomllib.load(f)
+
+    qwen_data = data["qwen"]
+    generation_data = qwen_data.get("generation", {})
+    runner_data = data.get("runner", {})
+
+    return AppConfig(
+        qwen=QwenConfig(
+            model=qwen_data["model"],
+            base_url=qwen_data["base_url"],
+            api_key=qwen_data["api_key"],
+            temperature=generation_data.get("temperature", 0.0),
+        ),
+        runner=RunnerConfig(
+            output_dir=runner_data.get("output_dir", "outputs"),
+        ),
+    )
