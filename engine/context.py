@@ -9,3 +9,4 @@ class CheckContext:
     protocol: Protocol
 
     llm: Optional[Any] = None
+    nio_retriever: Optional[Any] = None

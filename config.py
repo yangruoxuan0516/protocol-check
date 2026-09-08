@@ -19,6 +19,23 @@ class QwenConfig:
 
 
 @dataclass
+class BGEConfig:
+    model: str = "BAAI/bge-m3"
+    base_url: str = ""
+    api_key: str = ""
+
+
+@dataclass
+class NIORetrievalConfig:
+    top_k: int = 5
+
+
+@dataclass
+class RetrievalConfig:
+    nio: NIORetrievalConfig
+
+
+@dataclass
 class RunnerConfig:
     output_dir: str = "outputs"
 
@@ -26,6 +43,8 @@ class RunnerConfig:
 @dataclass
 class AppConfig:
     qwen: QwenConfig
+    bge: BGEConfig
+    retrieval: RetrievalConfig
     runner: RunnerConfig
 
 
@@ -47,6 +66,9 @@ def load_config(path: Optional[str] = None) -> AppConfig:
 
     qwen_data = data["qwen"]
     generation_data = qwen_data.get("generation", {})
+    bge_data = data.get("bge", {})
+    retrieval_data = data.get("retrieval", {})
+    nio_retrieval_data = retrieval_data.get("nio", {})
     runner_data = data.get("runner", {})
 
     return AppConfig(
@@ -55,6 +77,16 @@ def load_config(path: Optional[str] = None) -> AppConfig:
             base_url=qwen_data["base_url"],
             api_key=qwen_data["api_key"],
             temperature=generation_data.get("temperature", 0.0),
+        ),
+        bge=BGEConfig(
+            model=bge_data.get("model", "BAAI/bge-m3"),
+            base_url=bge_data.get("base_url", ""),
+            api_key=bge_data.get("api_key", ""),
+        ),
+        retrieval=RetrievalConfig(
+            nio=NIORetrievalConfig(
+                top_k=nio_retrieval_data.get("top_k", 5),
+            ),
         ),
         runner=RunnerConfig(
             output_dir=runner_data.get("output_dir", "outputs"),

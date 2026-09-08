@@ -56,10 +56,22 @@ def load_protocol_jsonl(path: str) -> Protocol:
                     f"{line_number}: {nio_type!r}"
                 )
 
+            section_number = data["section_number"]
+
+            if (
+                section_number is not None
+                and not isinstance(section_number, str)
+            ):
+                raise ValueError(
+                    f"Invalid section_number value at line "
+                    f"{line_number}: {section_number!r}"
+                )
+
             nio = NIO(
                 id=data["id"],
                 specification=data["specification"],
                 type=nio_type,
+                section_number=section_number,
                 rationale=data.get("rationale"),
                 req=req,
                 source=source,

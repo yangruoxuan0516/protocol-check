@@ -29,9 +29,10 @@ def test_parse_actual_jsonl_fields_req_mapping_and_source(tmp_path):
         "rationale": None,
         "req": "Yes",
         "type": "requirement",
+        "section_number": "4.3.2.5",
         "source": {
             "file": "protocol.docx",
-            "table": "Table 1",
+            "table": 1,
             "word_row": 123,
         },
     }
@@ -48,9 +49,10 @@ def test_parse_actual_jsonl_fields_req_mapping_and_source(tmp_path):
     assert nio.rationale is None
     assert nio.req == "Yes"
     assert nio.type == "requirement"
+    assert nio.section_number == "4.3.2.5"
     assert nio.source is not None
     assert nio.source.file == "protocol.docx"
-    assert nio.source.table == "Table 1"
+    assert nio.source.table == 1
     assert nio.source.word_row == 123
     assert isinstance(nio.source.word_row, int)
 
@@ -166,9 +168,10 @@ def test_cli_runs_single_shall_with_synthetic_jsonl(tmp_path):
                     "rationale": "Synthetic fixture",
                     "req": "Yes",
                     "type": "requirement",
+                    "section_number": "4.3",
                 "source": {
                     "file": "fixture.docx",
-                    "table": "Table A",
+                    "table": 1,
                     "word_row": 1,
                 },
             }
@@ -210,6 +213,7 @@ def test_parse_section_header_type(tmp_path):
                 "rationale": None,
                 "req": None,
                 "type": "section_header",
+                "section_number": None,
                 "source": {
                     "file": "protocol.docx",
                     "table": 1,
@@ -225,6 +229,7 @@ def test_parse_section_header_type(tmp_path):
 
     assert nio.req is None
     assert nio.type == "section_header"
+    assert nio.section_number is None
     assert nio.source is not None
     assert nio.source.word_row == 12
     assert isinstance(nio.source.word_row, int)

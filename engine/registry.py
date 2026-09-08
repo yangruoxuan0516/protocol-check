@@ -4,6 +4,9 @@ from checks.cor_02_01.single_shall import (
 from checks.cor_02_01.factual_correct import (
     FactualCorrectCheck,
 )
+from checks.cor_02_12.not_duplicate import (
+    NotDuplicateCheck,
+)
 
 
 CHECKS = {
@@ -12,6 +15,9 @@ CHECKS = {
 
     "COR-02.01.factual_correct":
         FactualCorrectCheck(),
+
+    "COR-02.12.not_duplicate":
+        NotDuplicateCheck(),
 }
 
 

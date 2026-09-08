@@ -13,6 +13,8 @@ from engine.runner import Runner
 from parsing.nio_jsonl import (
     load_protocol_jsonl,
 )
+from services.bge import BGEEmbeddingService
+from services.nio_retriever import NIORetriever
 from services.qwen import QwenService
 
 
@@ -112,9 +114,33 @@ def main():
             temperature=config.qwen.temperature,
         )
 
+    nio_retriever = None
+    needs_nio_retriever = any(
+        "nio_retriever" in check.requires
+        for check in checks
+    )
+    if needs_nio_retriever and all(
+        (
+            config.bge.api_key,
+            config.bge.base_url,
+            config.bge.model,
+        )
+    ):
+        embedding_service = BGEEmbeddingService(
+            api_key=config.bge.api_key,
+            base_url=config.bge.base_url,
+            model=config.bge.model,
+        )
+        nio_retriever = NIORetriever(
+            protocol=protocol,
+            embedding_service=embedding_service,
+            top_k=config.retrieval.nio.top_k,
+        )
+
     context = CheckContext(
         protocol=protocol,
         llm=llm,
+        nio_retriever=nio_retriever,
     )
 
     runner = Runner(context)

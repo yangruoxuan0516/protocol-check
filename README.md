@@ -1,3 +1,4 @@
+# build project skeletion, with simple 02.01 examples
 cd /path/to/protocol_check
 
 python3.9 -m pip install -e ".[test]"
@@ -32,3 +33,13 @@ python3.9 run.py \
   --input /path/to/nios.jsonl \
   --all \
   --output outputs/all_results.jsonl
+
+
+
+# previous checks were single-nio only, now add a cross-nio check
+
+python3.9 run.py \
+  --input nios.jsonl \
+  --check COR-02.12.not_duplicate \
+  --limit 5 \
+  --output outputs/not_duplicate_5.jsonl

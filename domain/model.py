@@ -5,7 +5,7 @@ from typing import Any, Optional
 @dataclass
 class Source:
     file: Optional[str] = None
-    table: Optional[str] = None
+    table: Optional[int] = None
     word_row: Optional[int] = None
 
 
@@ -15,6 +15,7 @@ class NIO:
     specification: str
     type: str
 
+    section_number: Optional[str] = None
     rationale: Optional[str] = None
     req: Optional[str] = None
     source: Optional[Source] = None
