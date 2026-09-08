@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Iterator, Optional
 
 from checks.base import CheckScope
 from domain.result import CheckResult, CheckStatus
@@ -13,8 +13,16 @@ class Runner:
         checks,
         limit: Optional[int] = None,
     ) -> list[CheckResult]:
-
         results: list[CheckResult] = []
+        for check_results in self.iter_run(checks, limit):
+            results.extend(check_results)
+        return results
+
+    def iter_run(
+        self,
+        checks,
+        limit: Optional[int] = None,
+    ) -> Iterator[list[CheckResult]]:
 
         for check in checks:
 
@@ -23,7 +31,7 @@ class Runner:
             )
 
             if dependency_error:
-                results.append(
+                yield [
                     CheckResult(
                         check_id=check.check_id,
                         implementation=(
@@ -33,7 +41,7 @@ class Runner:
                         status=CheckStatus.BLOCKED,
                         message=dependency_error,
                     )
-                )
+                ]
                 continue
 
             if check.scope == CheckScope.NIO:
@@ -43,19 +51,15 @@ class Runner:
                     targets = targets[:limit]
 
                 for target in targets:
-                    results.extend(
-                        self._safe_run(
-                            check,
-                            target,
-                        )
+                    yield self._safe_run(
+                        check,
+                        target,
                     )
 
             elif check.scope == CheckScope.DOCUMENT:
-                results.extend(
-                    self._safe_run(
-                        check,
-                        self.context.protocol,
-                    )
+                yield self._safe_run(
+                    check,
+                    self.context.protocol,
                 )
 
             elif (
@@ -67,11 +71,9 @@ class Runner:
                 if limit is not None:
                     nios = nios[:limit]
 
-                results.extend(
-                    self._safe_run(
-                        check,
-                        nios,
-                    )
+                yield self._safe_run(
+                    check,
+                    nios,
                 )
 
             else:
@@ -80,7 +82,33 @@ class Runner:
                     f"{check.scope}"
                 )
 
-        return results
+    def count_work_units(
+        self,
+        checks,
+        limit: Optional[int] = None,
+    ) -> int:
+        total = 0
+
+        for check in checks:
+            if self._check_dependencies(check):
+                total += 1
+            elif check.scope == CheckScope.NIO:
+                targets = self.context.protocol.nios
+                if limit is not None:
+                    targets = targets[:limit]
+                total += len(targets)
+            elif check.scope in {
+                CheckScope.DOCUMENT,
+                CheckScope.REQUIREMENT_SET,
+            }:
+                total += 1
+            else:
+                raise ValueError(
+                    f"Unsupported scope: "
+                    f"{check.scope}"
+                )
+
+        return total
 
     def _safe_run(self, check, target):
         try:

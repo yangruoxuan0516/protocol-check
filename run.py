@@ -1,8 +1,12 @@
 import argparse
 import json
 from pathlib import Path
+from typing import Any, Iterable, List, TextIO
+
+from tqdm import tqdm
 
 from config import load_config
+from domain.result import CheckResult
 from engine.context import CheckContext
 from engine.registry import (
     CHECKS,
@@ -62,7 +66,53 @@ def parse_args():
         default=None,
     )
 
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Allow replacing an existing output file.",
+    )
+
     return parser.parse_args()
+
+
+def open_output_file(
+    output_path: Path,
+    overwrite: bool,
+) -> TextIO:
+    mode = "w" if overwrite else "x"
+    try:
+        return output_path.open(
+            mode,
+            encoding="utf-8",
+        )
+    except FileExistsError:
+        raise SystemExit(
+            f"Output file already exists: {output_path}. "
+            "Use --overwrite to replace it."
+        ) from None
+
+
+def write_results_incrementally(
+    result_batches: Iterable[List[CheckResult]],
+    output_file: TextIO,
+    progress: Any,
+) -> int:
+    result_count = 0
+
+    for check_results in result_batches:
+        for result in check_results:
+            json.dump(
+                result.to_dict(),
+                output_file,
+                ensure_ascii=False,
+            )
+            output_file.write("\n")
+            output_file.flush()
+            result_count += 1
+
+        progress.update(1)
+
+    return result_count
 
 
 def main():
@@ -145,11 +195,6 @@ def main():
 
     runner = Runner(context)
 
-    results = runner.run(
-        checks=checks,
-        limit=args.limit,
-    )
-
     output_path = (
         Path(args.output)
         if args.output is not None
@@ -160,21 +205,30 @@ def main():
         exist_ok=True,
     )
 
-    with output_path.open(
-        "w",
-        encoding="utf-8",
-    ) as f:
-
-        for result in results:
-            json.dump(
-                result.to_dict(),
-                f,
-                ensure_ascii=False,
+    total_work = runner.count_work_units(
+        checks=checks,
+        limit=args.limit,
+    )
+    with open_output_file(
+        output_path,
+        overwrite=args.overwrite,
+    ) as output_file:
+        with tqdm(
+            total=total_work,
+            desc="Checking",
+            unit="check-target",
+        ) as progress:
+            result_count = write_results_incrementally(
+                runner.iter_run(
+                    checks=checks,
+                    limit=args.limit,
+                ),
+                output_file,
+                progress,
             )
-            f.write("\n")
 
     print(
-        f"Wrote {len(results)} results "
+        f"Wrote {result_count} results "
         f"to {output_path}"
     )
 
