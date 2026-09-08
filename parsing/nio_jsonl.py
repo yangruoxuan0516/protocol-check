@@ -37,17 +37,29 @@ def load_protocol_jsonl(path: str) -> Protocol:
                     word_row=source_data.get("word_row"),
                 )
 
-            req = data.get("Req")
+            req = data["req"]
 
             if req not in ("Yes", "No", None):
                 raise ValueError(
-                    f"Invalid Req value at line "
+                    f"Invalid req value at line "
                     f"{line_number}: {req!r}"
+                )
+
+            nio_type = data["type"]
+
+            if nio_type not in (
+                "requirement",
+                "section_header",
+            ):
+                raise ValueError(
+                    f"Invalid type value at line "
+                    f"{line_number}: {nio_type!r}"
                 )
 
             nio = NIO(
                 id=data["id"],
                 specification=data["specification"],
+                type=nio_type,
                 rationale=data.get("rationale"),
                 req=req,
                 source=source,

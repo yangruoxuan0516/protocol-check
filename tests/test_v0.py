@@ -27,7 +27,8 @@ def test_parse_actual_jsonl_fields_req_mapping_and_source(tmp_path):
         "id": "NIO-1",
         "specification": "The unit shall respond.",
         "rationale": None,
-        "Req": "Yes",
+        "req": "Yes",
+        "type": "requirement",
         "source": {
             "file": "protocol.docx",
             "table": "Table 1",
@@ -46,6 +47,7 @@ def test_parse_actual_jsonl_fields_req_mapping_and_source(tmp_path):
     assert nio.specification == record["specification"]
     assert nio.rationale is None
     assert nio.req == "Yes"
+    assert nio.type == "requirement"
     assert nio.source is not None
     assert nio.source.file == "protocol.docx"
     assert nio.source.table == "Table 1"
@@ -57,6 +59,7 @@ def test_single_shall_uses_exact_lowercase_occurrences():
     nio = NIO(
         id="NIO-2",
         specification="The unit shall start and shall report. SHALL is ignored.",
+        type="requirement",
     )
     context = CheckContext(protocol=make_protocol(nio))
 
@@ -84,7 +87,11 @@ class NeedsServiceCheck(Check):
 
 
 def test_runner_converts_checker_exception_to_error():
-    nio = NIO(id="NIO-3", specification="Example")
+    nio = NIO(
+        id="NIO-3",
+        specification="Example",
+        type="requirement",
+    )
     runner = Runner(CheckContext(protocol=make_protocol(nio)))
 
     result = runner.run([RaisingCheck()])[0]
@@ -95,7 +102,11 @@ def test_runner_converts_checker_exception_to_error():
 
 
 def test_runner_blocks_missing_dependency():
-    nio = NIO(id="NIO-4", specification="Example")
+    nio = NIO(
+        id="NIO-4",
+        specification="Example",
+        type="requirement",
+    )
     runner = Runner(CheckContext(protocol=make_protocol(nio)))
 
     result = runner.run([NeedsServiceCheck()])[0]
@@ -109,7 +120,11 @@ class FakeLLM:
     model = "fake-qwen"
     last_raw_response = '{"status":"REVIEW","reason":"Insufficient evidence."}'
 
+    def __init__(self):
+        self.calls = 0
+
     def ask_json(self, prompt):
+        self.calls += 1
         assert "The component shall use the specified encoding." in prompt
         return {
             "status": "REVIEW",
@@ -121,6 +136,7 @@ def test_factual_correct_with_fake_llm_preserves_traceability():
     nio = NIO(
         id="NIO-5",
         specification="The component shall use the specified encoding.",
+        type="requirement",
     )
     llm = FakeLLM()
     context = CheckContext(
@@ -131,6 +147,7 @@ def test_factual_correct_with_fake_llm_preserves_traceability():
     result = FactualCorrectCheck().run(nio, context)[0]
 
     assert result.status is CheckStatus.REVIEW
+    assert llm.calls == 1
     assert result.metadata["model"] == "fake-qwen"
     assert result.metadata["raw_model_response"] == llm.last_raw_response
     assert result.metadata["parsed_model_response"]["status"] == "REVIEW"
@@ -146,8 +163,9 @@ def test_cli_runs_single_shall_with_synthetic_jsonl(tmp_path):
             {
                 "id": "NIO-6",
                 "specification": "The unit shall respond.",
-                "rationale": "Synthetic fixture",
-                "Req": "Yes",
+                    "rationale": "Synthetic fixture",
+                    "req": "Yes",
+                    "type": "requirement",
                 "source": {
                     "file": "fixture.docx",
                     "table": "Table A",
@@ -180,3 +198,66 @@ def test_cli_runs_single_shall_with_synthetic_jsonl(tmp_path):
     result = json.loads(output_path.read_text(encoding="utf-8"))
     assert result["status"] == "PASS"
     assert result["metadata"]["shall_count"] == 1
+
+
+def test_parse_section_header_type(tmp_path):
+    input_path = tmp_path / "section_header.jsonl"
+    input_path.write_text(
+        json.dumps(
+            {
+                "id": "NIO-7",
+                "specification": "Network Management",
+                "rationale": None,
+                "req": None,
+                "type": "section_header",
+                "source": {
+                    "file": "protocol.docx",
+                    "table": 1,
+                    "word_row": 12,
+                },
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    nio = load_protocol_jsonl(str(input_path)).nios[0]
+
+    assert nio.req is None
+    assert nio.type == "section_header"
+    assert nio.source is not None
+    assert nio.source.word_row == 12
+    assert isinstance(nio.source.word_row, int)
+
+
+def test_single_shall_is_not_applicable_to_section_header():
+    nio = NIO(
+        id="NIO-8",
+        specification="shall shall",
+        type="section_header",
+    )
+    context = CheckContext(protocol=make_protocol(nio))
+
+    result = SingleShallCheck().run(nio, context)[0]
+
+    assert result.status is CheckStatus.NOT_APPLICABLE
+    assert result.message == "Record is a section header."
+
+
+def test_factual_correct_is_not_applicable_without_calling_llm():
+    nio = NIO(
+        id="NIO-9",
+        specification="Section heading",
+        type="section_header",
+    )
+    llm = FakeLLM()
+    context = CheckContext(
+        protocol=make_protocol(nio),
+        llm=llm,
+    )
+
+    result = FactualCorrectCheck().run(nio, context)[0]
+
+    assert result.status is CheckStatus.NOT_APPLICABLE
+    assert result.message == "Record is a section header."
+    assert llm.calls == 0

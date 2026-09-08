@@ -13,6 +13,7 @@ class Source:
 class NIO:
     id: str
     specification: str
+    type: str
 
     rationale: Optional[str] = None
     req: Optional[str] = None

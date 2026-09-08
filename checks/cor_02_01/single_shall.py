@@ -15,6 +15,17 @@ class SingleShallCheck(Check):
         context,
     ) -> list[CheckResult]:
 
+        if target.type == "section_header":
+            return [
+                CheckResult(
+                    check_id=self.check_id,
+                    implementation=self.implementation,
+                    target_id=target.id,
+                    status=CheckStatus.NOT_APPLICABLE,
+                    message="Record is a section header.",
+                )
+            ]
+
         count = target.specification.count("shall")
 
         if count <= 1:
