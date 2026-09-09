@@ -11,7 +11,20 @@ model = "BAAI/bge-m3"
 base_url = ""
 api_key = ""
 
+[data]
+protocol = ""
+
+[embeddings]
+cache_dir = ".cache/protocol_check/embeddings"
+
+[standards]
+arinc664p2 = ""
+arinc664p7 = ""
+
 [retrieval.nio]
+top_k = 5
+
+[retrieval.standard]
 top_k = 5
 
 [runner]

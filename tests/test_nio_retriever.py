@@ -3,10 +3,13 @@ from math import sqrt
 import pytest
 
 from domain.model import NIO, Protocol
+from services.embedding_store import EmbeddingStore
 from services.nio_retriever import NIORetriever
 
 
 class FakeEmbeddingService:
+    model = "fake-bge"
+
     def __init__(self, vectors):
         self.vectors = vectors
         self.calls = []
@@ -16,7 +19,7 @@ class FakeEmbeddingService:
         return [self.vectors[text] for text in texts]
 
 
-def test_retriever_indexes_requirements_once_and_returns_ordered_top_k():
+def test_retriever_preserves_semantics_and_reuses_protocol_cache(tmp_path):
     target = NIO(
         id="NIO-1",
         specification="target",
@@ -55,9 +58,13 @@ def test_retriever_indexes_requirements_once_and_returns_ordered_top_k():
             "far": [0.0, 1.0],
         }
     )
+    source_path = tmp_path / "protocol.jsonl"
+    source_path.write_text("synthetic protocol\n", encoding="utf-8")
+    store = EmbeddingStore(tmp_path / "cache", embedding_service)
     retriever = NIORetriever(
         protocol=protocol,
-        embedding_service=embedding_service,
+        embedding_store=store,
+        source_path=source_path,
         top_k=2,
     )
 
@@ -77,3 +84,17 @@ def test_retriever_indexes_requirements_once_and_returns_ordered_top_k():
     assert results[0].similarity == pytest.approx(
         0.8 / sqrt(0.8 ** 2 + 0.2 ** 2)
     )
+    assert retriever.get_embedding("NIO-1").tolist() == [1.0, 0.0]
+
+    cached_service = FakeEmbeddingService({})
+    cached_retriever = NIORetriever(
+        protocol=protocol,
+        embedding_store=EmbeddingStore(tmp_path / "cache", cached_service),
+        source_path=source_path,
+        top_k=2,
+    )
+    assert [item.nio.id for item in cached_retriever.retrieve(target)] == [
+        "NIO-2",
+        "NIO-3",
+    ]
+    assert cached_service.calls == []

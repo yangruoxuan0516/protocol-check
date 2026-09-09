@@ -17,9 +17,12 @@ from engine.runner import Runner
 from parsing.nio_jsonl import (
     load_protocol_jsonl,
 )
+from parsing.standard_jsonl import load_standard_jsonl
 from services.bge import BGEEmbeddingService
+from services.embedding_store import EmbeddingStore
 from services.nio_retriever import NIORetriever
 from services.qwen import QwenService
+from services.standard_retriever import StandardRetriever
 
 
 def parse_args():
@@ -27,7 +30,7 @@ def parse_args():
 
     parser.add_argument(
         "--input",
-        required=True,
+        default=None,
     )
 
     group = parser.add_mutually_exclusive_group(
@@ -55,6 +58,11 @@ def parse_args():
         action="store_true",
     )
 
+    group.add_argument(
+        "--inspect-standard-retrieval",
+        action="store_true",
+    )
+
     parser.add_argument(
         "--limit",
         type=int,
@@ -62,6 +70,7 @@ def parse_args():
     )
 
     parser.add_argument(
+        "-o",
         "--output",
         default=None,
     )
@@ -72,7 +81,38 @@ def parse_args():
         help="Allow replacing an existing output file.",
     )
 
+    parser.add_argument(
+        "--rebuild-embeddings",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--top-k",
+        type=int,
+        default=None,
+    )
+
     return parser.parse_args()
+
+
+def resolve_protocol_input(
+    cli_input: Any,
+    configured_input: Any,
+) -> Path:
+    selected = cli_input or configured_input
+    if not selected:
+        raise SystemExit(
+            "Protocol input is required. Use --input or configure "
+            "[data].protocol."
+        )
+    return Path(selected)
+
+
+def get_inspection_targets(protocol, limit):
+    targets = [nio for nio in protocol.nios if nio.type == "requirement"]
+    if limit is not None:
+        targets = targets[:limit]
+    return targets
 
 
 def open_output_file(
@@ -115,10 +155,155 @@ def write_results_incrementally(
     return result_count
 
 
+def write_inspection_incrementally(
+    targets,
+    nio_retriever,
+    standard_retriever,
+    top_k: int,
+    output_file: TextIO,
+    progress: Any,
+) -> int:
+    record_count = 0
+
+    for target in targets:
+        query_embedding = nio_retriever.get_embedding(target.id)
+        matches = standard_retriever.search_by_vector(
+            query_embedding,
+            top_k=top_k,
+        )
+        record = {
+            "target_id": target.id,
+            "target_section_number": target.section_number,
+            "query": target.specification,
+            "matches": [
+                {
+                    "rank": rank,
+                    "chunk_id": match.chunk.chunk_id,
+                    "document": match.chunk.document,
+                    "content_type": match.chunk.content_type,
+                    "section_number": match.chunk.section_number,
+                    "section_title": match.chunk.section_title,
+                    "page_start": match.chunk.page_start,
+                    "page_end": match.chunk.page_end,
+                    "similarity": match.similarity,
+                    "text": match.chunk.text,
+                }
+                for rank, match in enumerate(matches, start=1)
+            ],
+        }
+        json.dump(record, output_file, ensure_ascii=False)
+        output_file.write("\n")
+        output_file.flush()
+        progress.update(1)
+        record_count += 1
+
+    return record_count
+
+
+def create_embedding_store(config, rebuild: bool):
+    if not all(
+        (
+            config.bge.api_key,
+            config.bge.base_url,
+            config.bge.model,
+        )
+    ):
+        return None
+    return EmbeddingStore(
+        cache_dir=Path(config.embeddings.cache_dir),
+        embedding_service=BGEEmbeddingService(
+            api_key=config.bge.api_key,
+            base_url=config.bge.base_url,
+            model=config.bge.model,
+        ),
+        rebuild=rebuild,
+    )
+
+
+def run_standard_inspection(
+    args,
+    config,
+    protocol,
+    protocol_path: Path,
+) -> None:
+    embedding_store = create_embedding_store(
+        config,
+        args.rebuild_embeddings,
+    )
+    if embedding_store is None:
+        raise SystemExit(
+            "BGE configuration is required for standard retrieval inspection."
+        )
+    if not config.standards.arinc664p2 or not config.standards.arinc664p7:
+        raise SystemExit(
+            "Both [standards].arinc664p2 and arinc664p7 must be configured."
+        )
+
+    p2_path = Path(config.standards.arinc664p2)
+    p7_path = Path(config.standards.arinc664p7)
+    nio_retriever = NIORetriever(
+        protocol=protocol,
+        embedding_store=embedding_store,
+        source_path=protocol_path,
+        top_k=config.retrieval.nio.top_k,
+    )
+    standard_retriever = StandardRetriever(
+        p2_chunks=load_standard_jsonl(str(p2_path)),
+        p2_source_path=p2_path,
+        p7_chunks=load_standard_jsonl(str(p7_path)),
+        p7_source_path=p7_path,
+        embedding_store=embedding_store,
+        top_k=config.retrieval.standard.top_k,
+    )
+    targets = get_inspection_targets(protocol, args.limit)
+    top_k = (
+        args.top_k
+        if args.top_k is not None
+        else config.retrieval.standard.top_k
+    )
+    output_path = (
+        Path(args.output)
+        if args.output is not None
+        else Path("retrieval_outputs/arinc_retrieval.jsonl")
+    )
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open_output_file(output_path, args.overwrite) as output_file:
+        with tqdm(
+            total=len(targets),
+            desc="Inspecting retrieval",
+            unit="requirement",
+        ) as progress:
+            record_count = write_inspection_incrementally(
+                targets,
+                nio_retriever,
+                standard_retriever,
+                top_k,
+                output_file,
+                progress,
+            )
+    print(f"Wrote {record_count} retrieval records to {output_path}")
+
+
 def main():
     args = parse_args()
 
     config = load_config()
+
+    protocol_path = resolve_protocol_input(
+        args.input,
+        config.data.protocol,
+    )
+    protocol = load_protocol_jsonl(str(protocol_path))
+
+    if args.inspect_standard_retrieval:
+        run_standard_inspection(
+            args,
+            config,
+            protocol,
+            protocol_path,
+        )
+        return
 
     if args.check:
         checks = [
@@ -140,10 +325,6 @@ def main():
         checks = list(
             CHECKS.values()
         )
-
-    protocol = load_protocol_jsonl(
-        args.input
-    )
 
     llm = None
     needs_llm = any(
@@ -169,21 +350,17 @@ def main():
         "nio_retriever" in check.requires
         for check in checks
     )
-    if needs_nio_retriever and all(
-        (
-            config.bge.api_key,
-            config.bge.base_url,
-            config.bge.model,
+    embedding_store = None
+    if needs_nio_retriever:
+        embedding_store = create_embedding_store(
+            config,
+            args.rebuild_embeddings,
         )
-    ):
-        embedding_service = BGEEmbeddingService(
-            api_key=config.bge.api_key,
-            base_url=config.bge.base_url,
-            model=config.bge.model,
-        )
+    if embedding_store is not None:
         nio_retriever = NIORetriever(
             protocol=protocol,
-            embedding_service=embedding_service,
+            embedding_store=embedding_store,
+            source_path=protocol_path,
             top_k=config.retrieval.nio.top_k,
         )
 

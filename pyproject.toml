@@ -4,6 +4,7 @@ version = "0.1.0"
 requires-python = ">=3.9"
 
 dependencies = [
+    "numpy>=1.21",
     "openai>=1.0",
     "tqdm>=4.0",
     "tomli>=2.0; python_version < '3.11'",
