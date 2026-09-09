@@ -78,3 +78,23 @@ python run.py \
   --top-k 5 \
   --overwrite \
   -o retrieval_outputs/arinc_retrieval_5.jsonl
+
+
+# add factual check with 664 ref
+Run against a one-record JSONL containing the selected NIO:
+python run.py \
+  --input /path/to/selected_nio.jsonl \
+  --check COR-02.01.factual_correct_arinc \
+  -o outputs/factual_arinc_selected.jsonl
+
+Run on the first five NIO records:
+python run.py \
+  --check COR-02.01.factual_correct_arinc \
+  --limit 5 \
+  -o outputs/factual_arinc_5.jsonl
+  
+Compare both factual implementations on the same first five targets:
+python run.py \
+  --requirement COR-02.01 \
+  --limit 5 \
+  -o outputs/cor_02_01_comparison_5.jsonl
