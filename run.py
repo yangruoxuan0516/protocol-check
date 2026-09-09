@@ -98,6 +98,15 @@ def parse_args():
         default=None,
     )
 
+    parser.add_argument(
+        "--check-all-nios",
+        action="store_true",
+        help=(
+            "Check all requirement NIOs regardless of Req value. "
+            "By default, only requirements with Req=Yes are checked."
+        ),
+    )
+
     return parser.parse_args()
 
 
@@ -269,6 +278,7 @@ def run_standard_inspection(
         embedding_store=embedding_store,
         source_path=protocol_path,
         top_k=config.retrieval.nio.top_k,
+        check_all_nios=True,
     )
     standard_retriever = StandardRetriever(
         p2_chunks=load_standard_jsonl(str(p2_path)),
@@ -393,6 +403,7 @@ def main():
             embedding_store=embedding_store,
             source_path=protocol_path,
             top_k=config.retrieval.nio.top_k,
+            check_all_nios=args.check_all_nios,
         )
 
     standard_retriever = None
@@ -420,7 +431,10 @@ def main():
         standard_retriever=standard_retriever,
     )
 
-    runner = Runner(context)
+    runner = Runner(
+        context,
+        check_all_nios=args.check_all_nios,
+    )
 
     output_path = (
         Path(args.output)

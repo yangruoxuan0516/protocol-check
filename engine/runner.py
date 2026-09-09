@@ -2,11 +2,13 @@ from typing import Iterator, Optional
 
 from checks.base import CheckScope
 from domain.result import CheckResult, CheckStatus
+from engine.eligibility import select_requirement_nios
 
 
 class Runner:
-    def __init__(self, context):
+    def __init__(self, context, check_all_nios=False):
         self.context = context
+        self.check_all_nios = check_all_nios
 
     def run(
         self,
@@ -45,10 +47,7 @@ class Runner:
                 continue
 
             if check.scope == CheckScope.NIO:
-                targets = self.context.protocol.nios
-
-                if limit is not None:
-                    targets = targets[:limit]
+                targets = self._active_requirements(limit)
 
                 for target in targets:
                     yield self._safe_run(
@@ -66,10 +65,7 @@ class Runner:
                 check.scope
                 == CheckScope.REQUIREMENT_SET
             ):
-                nios = self.context.protocol.nios
-
-                if limit is not None:
-                    nios = nios[:limit]
+                nios = self._active_requirements(limit)
 
                 yield self._safe_run(
                     check,
@@ -93,9 +89,7 @@ class Runner:
             if self._check_dependencies(check):
                 total += 1
             elif check.scope == CheckScope.NIO:
-                targets = self.context.protocol.nios
-                if limit is not None:
-                    targets = targets[:limit]
+                targets = self._active_requirements(limit)
                 total += len(targets)
             elif check.scope in {
                 CheckScope.DOCUMENT,
@@ -109,6 +103,15 @@ class Runner:
                 )
 
         return total
+
+    def _active_requirements(self, limit):
+        targets = select_requirement_nios(
+            self.context.protocol.nios,
+            check_all_nios=self.check_all_nios,
+        )
+        if limit is not None:
+            targets = targets[:limit]
+        return targets
 
     def _safe_run(self, check, target):
         try:

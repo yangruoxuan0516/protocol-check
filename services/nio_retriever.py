@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from domain.model import NIO, Protocol
+from engine.eligibility import select_requirement_nios
 from services.embedding_store import EmbeddingIndex, EmbeddingStore
 
 
@@ -19,16 +20,17 @@ class NIORetriever:
         embedding_store: EmbeddingStore,
         source_path: Path,
         top_k: int = 5,
+        check_all_nios: bool = False,
     ):
         self.protocol = protocol
         self.embedding_store = embedding_store
         self.source_path = Path(source_path)
         self.top_k = top_k
-        self._requirements = [
-            nio
-            for nio in protocol.nios
-            if nio.type == "requirement"
-        ]
+        self.check_all_nios = check_all_nios
+        self._requirements = select_requirement_nios(
+            protocol.nios,
+            check_all_nios=check_all_nios,
+        )
         self._index: Optional[EmbeddingIndex] = None
 
     def retrieve(self, target: NIO) -> List[RetrievedNIO]:
@@ -64,6 +66,10 @@ class NIORetriever:
                 source_path=self.source_path,
                 item_ids=[nio.id for nio in self._requirements],
                 texts=[nio.specification for nio in self._requirements],
-                embedding_input="nio.specification",
+                embedding_input=(
+                    "nio.specification:all_requirements"
+                    if self.check_all_nios
+                    else "nio.specification:req_yes"
+                ),
             )
         return self._index

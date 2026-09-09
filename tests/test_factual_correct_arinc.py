@@ -17,6 +17,7 @@ def requirement(nio_id="NIO-1", nio_type="requirement"):
         specification="The hosted function shall transmit the frame.",
         type=nio_type,
         section_number="4.3.2",
+        req="Yes",
     )
 
 

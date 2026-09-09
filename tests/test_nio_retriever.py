@@ -24,21 +24,25 @@ def test_retriever_preserves_semantics_and_reuses_protocol_cache(tmp_path):
         id="NIO-1",
         specification="target",
         type="requirement",
+        req="Yes",
     )
     near = NIO(
         id="NIO-2",
         specification="near",
         type="requirement",
+        req="Yes",
     )
     middle = NIO(
         id="NIO-3",
         specification="middle",
         type="requirement",
+        req="Yes",
     )
     far = NIO(
         id="NIO-4",
         specification="far",
         type="requirement",
+        req="Yes",
     )
     header = NIO(
         id="NIO-5",

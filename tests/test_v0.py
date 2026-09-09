@@ -93,6 +93,7 @@ def test_runner_converts_checker_exception_to_error():
         id="NIO-3",
         specification="Example",
         type="requirement",
+        req="Yes",
     )
     runner = Runner(CheckContext(protocol=make_protocol(nio)))
 

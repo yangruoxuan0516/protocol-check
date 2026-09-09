@@ -75,6 +75,7 @@ def test_progress_counts_executions_and_all_results_are_written(tmp_path):
             id=f"NIO-{index}",
             specification="Synthetic requirement.",
             type="requirement",
+            req="Yes",
         )
         for index in (1, 2)
     ]
@@ -107,6 +108,7 @@ def test_error_result_is_written_incrementally(tmp_path):
         id="NIO-1",
         specification="Synthetic requirement.",
         type="requirement",
+        req="Yes",
     )
     protocol = Protocol(
         document_id="test",
