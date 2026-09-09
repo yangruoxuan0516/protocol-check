@@ -1,4 +1,5 @@
 import json
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -70,7 +71,11 @@ def test_inspection_skips_headers_reuses_vectors_and_writes_incrementally(tmp_pa
         section_number=None,
     )
     protocol = Protocol("protocol", "Protocol", [requirement_one, header, requirement_two])
-    targets = get_inspection_targets(protocol, limit=5)
+    targets = get_inspection_targets(
+        protocol,
+        limit=1,
+        target_ids=["NIO-3", "NIO-1"],
+    )
     output_path = tmp_path / "inspection.jsonl"
     nio_retriever = FakeNIORetriever()
     standard_retriever = FakeStandardRetriever(output_path)
@@ -92,10 +97,10 @@ def test_inspection_skips_headers_reuses_vectors_and_writes_incrementally(tmp_pa
     ]
     assert count == 2
     assert progress.completed == 2
-    assert nio_retriever.requested_ids == ["NIO-1", "NIO-3"]
-    assert [record["target_id"] for record in records] == ["NIO-1", "NIO-3"]
-    assert records[0]["query"] == "First requirement."
-    assert records[0]["target_section_number"] == "4.1"
+    assert nio_retriever.requested_ids == ["NIO-3", "NIO-1"]
+    assert [record["target_id"] for record in records] == ["NIO-3", "NIO-1"]
+    assert records[0]["query"] == "Second requirement."
+    assert records[0]["target_section_number"] is None
     match = records[0]["matches"][0]
     assert match == {
         "rank": 1,
@@ -125,6 +130,77 @@ def test_inspection_limit_counts_requirement_queries_only():
     targets = get_inspection_targets(protocol, limit=1)
 
     assert [target.id for target in targets] == ["requirement-1"]
+
+
+def test_one_target_id_selects_only_that_requirement():
+    protocol = Protocol(
+        "protocol",
+        "Protocol",
+        [
+            NIO("NIO-1", "One", "requirement"),
+            NIO("NIO-2", "Two", "requirement"),
+        ],
+    )
+
+    targets = get_inspection_targets(
+        protocol,
+        limit=None,
+        target_ids=["NIO-2"],
+    )
+
+    assert [target.id for target in targets] == ["NIO-2"]
+
+
+def test_missing_target_id_is_rejected():
+    protocol = Protocol(
+        "protocol",
+        "Protocol",
+        [NIO("NIO-1", "One", "requirement")],
+    )
+
+    with pytest.raises(SystemExit, match="does not exist: NIO-404"):
+        get_inspection_targets(protocol, None, ["NIO-404"])
+
+
+def test_section_header_target_id_is_rejected():
+    protocol = Protocol(
+        "protocol",
+        "Protocol",
+        [NIO("NIO-1", "Heading", "section_header")],
+    )
+
+    with pytest.raises(SystemExit, match="not a requirement: NIO-1"):
+        get_inspection_targets(protocol, None, ["NIO-1"])
+
+
+def test_duplicate_target_ids_are_rejected():
+    protocol = Protocol(
+        "protocol",
+        "Protocol",
+        [NIO("NIO-1", "One", "requirement")],
+    )
+
+    with pytest.raises(SystemExit, match="Duplicate --target-id"):
+        get_inspection_targets(protocol, None, ["NIO-1", "NIO-1"])
+
+
+def test_target_id_option_is_repeatable(monkeypatch):
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run.py",
+            "--inspect-standard-retrieval",
+            "--target-id",
+            "NIO-123",
+            "--target-id",
+            "NIO-456",
+        ],
+    )
+
+    args = run_module.parse_args()
+
+    assert args.target_id == ["NIO-123", "NIO-456"]
 
 
 class FakeBGE:
@@ -229,6 +305,7 @@ def test_inspection_main_uses_config_override_and_overwrite_protection(
         top_k=1,
         output=str(tmp_path / "configured-output.jsonl"),
         overwrite=False,
+        target_id=None,
     )
     monkeypatch.setattr(run_module, "load_config", lambda: config)
     monkeypatch.setattr(run_module, "parse_args", lambda: args)

@@ -92,6 +92,12 @@ def parse_args():
         default=None,
     )
 
+    parser.add_argument(
+        "--target-id",
+        action="append",
+        default=None,
+    )
+
     return parser.parse_args()
 
 
@@ -108,7 +114,24 @@ def resolve_protocol_input(
     return Path(selected)
 
 
-def get_inspection_targets(protocol, limit):
+def get_inspection_targets(protocol, limit, target_ids=None):
+    if target_ids:
+        if len(set(target_ids)) != len(target_ids):
+            raise SystemExit("Duplicate --target-id values are not allowed.")
+
+        records_by_id = {nio.id: nio for nio in protocol.nios}
+        selected = []
+        for target_id in target_ids:
+            target = records_by_id.get(target_id)
+            if target is None:
+                raise SystemExit(f"Requested target ID does not exist: {target_id}")
+            if target.type != "requirement":
+                raise SystemExit(
+                    f"Requested target ID is not a requirement: {target_id}"
+                )
+            selected.append(target)
+        return selected
+
     targets = [nio for nio in protocol.nios if nio.type == "requirement"]
     if limit is not None:
         targets = targets[:limit]
@@ -255,7 +278,11 @@ def run_standard_inspection(
         embedding_store=embedding_store,
         top_k=config.retrieval.standard.top_k,
     )
-    targets = get_inspection_targets(protocol, args.limit)
+    targets = get_inspection_targets(
+        protocol,
+        args.limit,
+        args.target_id,
+    )
     top_k = (
         args.top_k
         if args.top_k is not None
