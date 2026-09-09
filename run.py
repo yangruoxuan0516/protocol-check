@@ -377,8 +377,12 @@ def main():
         "nio_retriever" in check.requires
         for check in checks
     )
+    needs_standard_retriever = any(
+        "standard_retriever" in check.requires
+        for check in checks
+    )
     embedding_store = None
-    if needs_nio_retriever:
+    if needs_nio_retriever or needs_standard_retriever:
         embedding_store = create_embedding_store(
             config,
             args.rebuild_embeddings,
@@ -391,10 +395,29 @@ def main():
             top_k=config.retrieval.nio.top_k,
         )
 
+    standard_retriever = None
+    if (
+        needs_standard_retriever
+        and embedding_store is not None
+        and config.standards.arinc664p2
+        and config.standards.arinc664p7
+    ):
+        p2_path = Path(config.standards.arinc664p2)
+        p7_path = Path(config.standards.arinc664p7)
+        standard_retriever = StandardRetriever(
+            p2_chunks=load_standard_jsonl(str(p2_path)),
+            p2_source_path=p2_path,
+            p7_chunks=load_standard_jsonl(str(p7_path)),
+            p7_source_path=p7_path,
+            embedding_store=embedding_store,
+            top_k=config.retrieval.standard.top_k,
+        )
+
     context = CheckContext(
         protocol=protocol,
         llm=llm,
         nio_retriever=nio_retriever,
+        standard_retriever=standard_retriever,
     )
 
     runner = Runner(context)

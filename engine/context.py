@@ -10,3 +10,4 @@ class CheckContext:
 
     llm: Optional[Any] = None
     nio_retriever: Optional[Any] = None
+    standard_retriever: Optional[Any] = None
