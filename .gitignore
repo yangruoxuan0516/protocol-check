@@ -5,6 +5,7 @@ __pycache__/
 .pytest_cache/
 .cache/
 retrieval_outputs/
+reports/
 *.egg-info/
 .venv/
 venv/

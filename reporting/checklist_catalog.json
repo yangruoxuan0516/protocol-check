@@ -1,0 +1,139 @@
+{
+  "catalog_version": 1,
+  "source": "manual_check_flow.md",
+  "empty_item_interpretation_status": "NOT_CHECK",
+  "categories": [
+    {
+      "category_id": "correctness",
+      "title": "Correctness",
+      "items": [
+        {
+          "item_id": "COR-02.01",
+          "title": "COR-02.01",
+          "concepts": [
+            {"concept_id": "COR-02.01.single_shall", "title": "Single shall", "interpretation_status": "CHECK", "maturity": "implemented", "checker_ids": ["COR-02.01.single_shall"], "default_checker_id": "COR-02.01.single_shall"},
+            {"concept_id": "COR-02.01.factual_correct", "title": "Factual correct", "interpretation_status": "CHECK", "maturity": "experimental", "checker_ids": ["COR-02.01.factual_correct", "COR-02.01.factual_correct_arinc"], "default_checker_id": "COR-02.01.factual_correct_arinc"},
+            {"concept_id": "COR-02.01.linguistically_correct", "title": "Linguistically correct", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+            {"concept_id": "COR-02.01.unambiguous", "title": "Unambiguous", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+            {"concept_id": "COR-02.01.acronyms_defined", "title": "No acronyms without definition", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+            {"concept_id": "COR-02.01.naming_consistency", "title": "Requirement consistent with naming conventions", "interpretation_status": "TRY", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+            {"concept_id": "COR-02.01.figure_table_numbering", "title": "Figures and tables numbered with object ID", "interpretation_status": "TRY", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+            {"concept_id": "COR-02.01.section_headers_commentary", "title": "Requirements divided into sections with headers and commentary", "interpretation_status": "NOT_CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null}
+          ]
+        },
+        {
+          "item_id": "COR-02.02",
+          "title": "COR-02.02",
+          "concepts": [
+            {"concept_id": "COR-02.02.core_requirement_value", "title": "Core requirement is Yes or No", "interpretation_status": "TRY", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null}
+          ]
+        },
+        {
+          "item_id": "COR-02.03",
+          "title": "COR-02.03",
+          "concepts": [
+            {"concept_id": "COR-02.03.better_separate", "title": "Better to separate", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+            {"concept_id": "COR-02.03.better_combine", "title": "Better to combine", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+            {"concept_id": "COR-02.03.single_assertion", "title": "Single assertion", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+            {"concept_id": "COR-02.03.assertion_only", "title": "Only assertion, no additional information", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+            {"concept_id": "COR-02.03.content_appropriate", "title": "Requirement-set content appropriate for a single requirement", "interpretation_status": "NOT_CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+            {"concept_id": "COR-02.03.verification_impact", "title": "Impact on verification of other requirements", "interpretation_status": "NOT_CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null}
+          ]
+        },
+        {"item_id": "COR-02.04", "title": "COR-02.04", "concepts": [
+          {"concept_id": "COR-02.04.product_not_development", "title": "Specify the product, not how it is developed", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null}
+        ]},
+        {"item_id": "COR-02.05", "title": "COR-02.05", "concepts": [
+          {"concept_id": "COR-02.05.timing_bounded", "title": "Timing requirement bounded", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null}
+        ]},
+        {"item_id": "COR-02.06", "title": "COR-02.06", "concepts": [
+          {"concept_id": "COR-02.06.correct_wording_for_level", "title": "Correct wording for level", "interpretation_status": "NOT_CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null}
+        ]},
+        {"item_id": "COR-02.07", "title": "COR-02.07", "concepts": [
+          {"concept_id": "COR-02.07.not_contradictory", "title": "Not contradictory", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null}
+        ]},
+        {"item_id": "COR-02.08", "title": "COR-02.08", "concepts": [
+          {"concept_id": "COR-02.08.inputs_outputs_defined", "title": "Inputs and outputs defined", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null}
+        ]},
+        {"item_id": "COR-02.09", "title": "COR-02.09", "concepts": [
+          {"concept_id": "COR-02.09.necessary_tolerance", "title": "Necessary tolerance", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null}
+        ]},
+        {"item_id": "COR-02.10", "title": "COR-02.10", "concepts": [
+          {"concept_id": "COR-02.10.link", "title": "Link", "interpretation_status": "NOT_CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null}
+        ]},
+        {"item_id": "COR-02.11", "title": "COR-02.11", "concepts": [
+          {"concept_id": "COR-02.11.no_implementation", "title": "No implementation", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null}
+        ]},
+        {
+          "item_id": "COR-02.12",
+          "title": "COR-02.12",
+          "concepts": [
+            {"concept_id": "COR-02.12.not_duplicate", "title": "Not duplicate", "interpretation_status": "CHECK", "maturity": "experimental", "checker_ids": ["COR-02.12.not_duplicate"], "default_checker_id": "COR-02.12.not_duplicate"},
+            {"concept_id": "COR-02.12.not_obviously_deduced", "title": "Not obviously deduced", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+            {"concept_id": "COR-02.12.not_combination", "title": "Not a combination", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+            {"concept_id": "COR-02.12.not_duplicate_database", "title": "Not duplicate in requirements database module", "interpretation_status": "TRY", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+            {"concept_id": "COR-02.12.not_misplaced", "title": "Not misplaced", "interpretation_status": "NOT_CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+            {"concept_id": "COR-02.12.non_derived_necessary", "title": "Non-derived requirement is necessary", "interpretation_status": "NOT_CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null}
+          ]
+        },
+        {"item_id": "COR-02.13", "title": "COR-02.13", "concepts": [
+          {"concept_id": "COR-02.13.physically_possible", "title": "Physically possible to implement", "interpretation_status": "TRY", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+          {"concept_id": "COR-02.13.project_constraints", "title": "Achievable within project constraints", "interpretation_status": "TRY", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null}
+        ]},
+        {"item_id": "COR-02.14", "title": "COR-02.14", "concepts": [
+          {"concept_id": "COR-02.14.no_negative_statement", "title": "No negative statement", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+          {"concept_id": "COR-02.14.no_difficult_words", "title": "No difficult-to-verify -ize or -ly wording", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+          {"concept_id": "COR-02.14.verifiable", "title": "Verifiable", "interpretation_status": "TRY", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null},
+          {"concept_id": "COR-02.14.verification_method", "title": "Can be verified by an accepted method", "interpretation_status": "TRY", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null}
+        ]},
+        {"item_id": "COR-02.15", "title": "COR-02.15", "concepts": []},
+        {"item_id": "COR-03.01", "title": "COR-03.01", "concepts": []},
+        {"item_id": "COR-03.02", "title": "COR-03.02", "concepts": []},
+        {"item_id": "COR-03.03", "title": "COR-03.03", "concepts": []},
+        {"item_id": "COR-04.01", "title": "COR-04.01", "concepts": []},
+        {"item_id": "COR-04.02", "title": "COR-04.02", "concepts": []}
+      ]
+    },
+    {
+      "category_id": "completeness",
+      "title": "Completeness",
+      "items": [
+        {"item_id": "CPL-02.01", "title": "CPL-02.01", "concepts": []},
+        {"item_id": "CPL-02.02", "title": "CPL-02.02", "concepts": []},
+        {"item_id": "CPL-02.03", "title": "CPL-02.03", "concepts": [
+          {"concept_id": "CPL-02.03.shall_and_core_requirement", "title": "Shall statement with Core Requirement set to Yes", "interpretation_status": "CHECK", "maturity": "not_implemented", "checker_ids": [], "default_checker_id": null}
+        ]},
+        {"item_id": "CPL-03.01", "title": "CPL-03.01", "concepts": []},
+        {"item_id": "CPL-03.02", "title": "CPL-03.02", "concepts": []},
+        {"item_id": "CPL-03.03", "title": "CPL-03.03", "concepts": []},
+        {"item_id": "CPL-03.04", "title": "CPL-03.04", "concepts": []},
+        {"item_id": "CPL-03.05", "title": "CPL-03.05", "concepts": []},
+        {"item_id": "CPL-04.01", "title": "CPL-04.01", "concepts": []},
+        {"item_id": "CPL-05.01", "title": "CPL-05.01", "concepts": []},
+        {"item_id": "CPL-06.01", "title": "CPL-06.01", "concepts": []},
+        {"item_id": "CPL-06.02", "title": "CPL-06.02", "concepts": []},
+        {"item_id": "CPL-06.03", "title": "CPL-06.03", "concepts": []},
+        {"item_id": "CPL-06.04", "title": "CPL-06.04", "concepts": []},
+        {"item_id": "CPL-06.05", "title": "CPL-06.05", "concepts": []},
+        {"item_id": "CPL-06.06", "title": "CPL-06.06", "concepts": []},
+        {"item_id": "CPL-06.07", "title": "CPL-06.07", "concepts": []},
+        {"item_id": "CPL-06.08", "title": "CPL-06.08", "concepts": []},
+        {"item_id": "CPL-06.09", "title": "CPL-06.09", "concepts": []},
+        {"item_id": "CPL-06.10", "title": "CPL-06.10", "concepts": []},
+        {"item_id": "CPL-06.11", "title": "CPL-06.11", "concepts": []},
+        {"item_id": "CPL-06.12", "title": "CPL-06.12", "concepts": []},
+        {"item_id": "CPL-07.01", "title": "CPL-07.01", "concepts": []},
+        {"item_id": "CPL-08.01", "title": "CPL-08.01", "concepts": []},
+        {"item_id": "CPL-09.01", "title": "CPL-09.01", "concepts": []},
+        {"item_id": "CPL-09.02", "title": "CPL-09.02", "concepts": []},
+        {"item_id": "CPL-09.03", "title": "CPL-09.03", "concepts": []},
+        {"item_id": "CPL-09.04", "title": "CPL-09.04", "concepts": []},
+        {"item_id": "CPL-10.01", "title": "CPL-10.01", "concepts": []},
+        {"item_id": "CPL-10.02", "title": "CPL-10.02", "concepts": []},
+        {"item_id": "CPL-11.01", "title": "CPL-11.01", "concepts": []},
+        {"item_id": "CPL-11.02", "title": "CPL-11.02", "concepts": []},
+        {"item_id": "CPL-11.03", "title": "CPL-11.03", "concepts": []}
+      ]
+    }
+  ]
+}

@@ -98,3 +98,24 @@ python run.py \
   --requirement COR-02.01 \
   --limit 5 \
   -o outputs/cor_02_01_comparison_5.jsonl
+
+
+# build an offline Matrix + Result Explorer report
+
+The report reads the protocol path from `[data].protocol` in `config.toml`.
+Select the result files explicitly with either a directory or a file list:
+
+python reporting/build_report.py \
+  --results-dir results/final \
+  -o reports/protocol_report.html
+
+python reporting/build_report.py \
+  --results \
+    outputs/single_shall.jsonl \
+    outputs/factual_correct_arinc.jsonl \
+    outputs/not_duplicate.jsonl \
+  -o reports/protocol_report.html
+
+The generated HTML is self-contained and can be opened directly without a
+web server or network connection. Use `--overwrite` to replace an existing
+report file explicitly.

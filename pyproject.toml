@@ -25,6 +25,7 @@ include = [
     "domain*",
     "engine*",
     "parsing*",
+    "reporting*",
     "services*",
 ]
 exclude = [
