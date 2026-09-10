@@ -119,3 +119,16 @@ python reporting/build_report.py \
 The generated HTML is self-contained and can be opened directly without a
 web server or network connection. Use `--overwrite` to replace an existing
 report file explicitly.
+
+
+# add visual report 
+把几个已经跑好的结果放到：
+results/final/
+├── single_shall.jsonl
+├── factual_correct.jsonl
+├── factual_correct_arinc.jsonl
+└── not_duplicate.jsonl
+
+python reporting/build_report.py \
+  --results-dir results/final \
+  -o reports/protocol_report.html
